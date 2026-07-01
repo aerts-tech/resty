@@ -628,10 +628,10 @@
 
   <div class="contact-grid">
     <form class="contact-form reveal" onsubmit="handleSubmit(event)">
-      <input type="text" placeholder="Naam" required />
-      <input type="email" placeholder="E-mail" required />
-      <input type="text" placeholder="Onderwerp" />
-      <textarea placeholder="Vertel ons alles..." required></textarea>
+      <input type="text" name="naam" placeholder="Naam" required />
+      <input type="email" name="email" placeholder="E-mail" required />
+      <input type="text" name="onderwerp" placeholder="Onderwerp" />
+      <textarea name="bericht" placeholder="Vertel ons alles..." required></textarea>
       <button type="submit" class="btn btn-blue">Verstuur <span class="arrow">→</span></button>
     </form>
 
@@ -677,11 +677,27 @@
   }, { threshold: 0.15 });
   document.querySelectorAll('.reveal').forEach(el => io.observe(el));
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
-    const btn = e.target.querySelector('button');
-    btn.innerHTML = 'Verstuurd ✓';
-    setTimeout(() => { e.target.reset(); btn.innerHTML = 'Verstuur <span class="arrow">→</span>'; }, 2400);
+    const form = e.target;
+    const btn = form.querySelector('button');
+    const original = 'Verstuur <span class="arrow">→</span>';
+    btn.disabled = true;
+    btn.innerHTML = 'Versturen…';
+
+    try {
+      const res = await fetch('https://formsubmit.co/ajax/nowaste@resty.nl', {
+        method: 'POST',
+        headers: { 'Accept': 'application/json' },
+        body: new FormData(form)
+      });
+      if (!res.ok) throw new Error('Netwerkfout');
+      btn.innerHTML = 'Verstuurd ✓';
+      setTimeout(() => { form.reset(); btn.innerHTML = original; btn.disabled = false; }, 2400);
+    } catch (err) {
+      btn.innerHTML = 'Mislukt — probeer opnieuw';
+      setTimeout(() => { btn.innerHTML = original; btn.disabled = false; }, 2600);
+    }
   }
 </script>
 
